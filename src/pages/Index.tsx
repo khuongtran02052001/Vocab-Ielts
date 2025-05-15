@@ -10,6 +10,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [displayWords, setDisplayWords] = useState<Word[]>([]);
   const [categoryName, setCategoryName] = useState('');
+  const [displayMode, setDisplayMode] = useState<'table' | 'list'>('table');
   
   const categories = getAllCategories();
   
@@ -51,6 +52,10 @@ const Index = () => {
     setActiveCategory(null);
   };
 
+  const toggleDisplayMode = () => {
+    setDisplayMode(prev => prev === 'table' ? 'list' : 'table');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header onSearchChange={handleSearch} />
@@ -66,6 +71,8 @@ const Index = () => {
           <VocabularyTable 
             words={displayWords}
             categoryName={categoryName}
+            displayMode={displayMode}
+            onToggleDisplayMode={toggleDisplayMode}
           />
         </div>
       </main>
