@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Category } from '@/data/vocabulary';
+import { Category } from '@/services/supabaseService';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface CategorySelectorProps {
@@ -34,8 +34,12 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
                   onClick={() => onSelectCategory(category.id)}
                 >
                   <h3 className="text-lg font-semibold text-primary-800">{category.name}</h3>
-                  <p className="text-gray-600 text-sm flex-grow">{category.description}</p>
-                  <div className="mt-2 text-xs text-gray-500">{category.words.length} words</div>
+                  <p className="text-gray-600 text-sm flex-grow">
+                    {category.name.includes('Listening') && 'Từ vựng liên quan đến kỹ năng nghe IELTS'}
+                    {category.name.includes('Reading') && 'Từ vựng liên quan đến kỹ năng đọc IELTS'}
+                    {category.name.includes('Writing') && 'Từ vựng liên quan đến kỹ năng viết IELTS'}
+                    {category.name.includes('Speaking') && 'Từ vựng liên quan đến kỹ năng nói IELTS'}
+                  </p>
                 </div>
               </CarouselItem>
             ))}

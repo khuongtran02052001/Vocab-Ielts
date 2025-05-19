@@ -1,7 +1,9 @@
 
-import React from 'react';
-import { Word } from '@/data/vocabulary';
-import { List, LayoutGrid } from 'lucide-react';
+import React, { useState } from 'react';
+import { Word } from '@/services/supabaseService';
+import { List, LayoutGrid, Volume2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VocabularyTableProps {
   words: Word[];
@@ -16,6 +18,8 @@ const VocabularyTable: React.FC<VocabularyTableProps> = ({
   displayMode, 
   onToggleDisplayMode 
 }) => {
+  const [playingWord, setPlayingWord] = useState<string | null>(null);
+
   if (words.length === 0) {
     return (
       <div className="text-center py-8">
@@ -23,6 +27,33 @@ const VocabularyTable: React.FC<VocabularyTableProps> = ({
       </div>
     );
   }
+
+  const handlePlayPronunciation = async (word: string) => {
+    try {
+      setPlayingWord(word);
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: word }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data && data.audioContent) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+        audio.onended = () => setPlayingWord(null);
+        audio.onerror = () => {
+          setPlayingWord(null);
+          toast.error('Failed to play audio');
+        };
+        await audio.play();
+      }
+    } catch (error) {
+      console.error('Error playing pronunciation:', error);
+      toast.error('Failed to load pronunciation');
+      setPlayingWord(null);
+    }
+  };
 
   return (
     <div className="animate-fade-in">
@@ -61,13 +92,23 @@ const VocabularyTable: React.FC<VocabularyTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {words.map((word, index) => (
-                <tr key={index}>
-                  <td className="font-medium">{word.term}</td>
+              {words.map((word) => (
+                <tr key={word.id}>
+                  <td className="font-medium flex items-center gap-2">
+                    {word.term}
+                    <button 
+                      onClick={() => handlePlayPronunciation(word.term)}
+                      className="text-primary-600 hover:text-primary-800"
+                      disabled={playingWord === word.term}
+                      title="Phát âm"
+                    >
+                      <Volume2 size={18} className={playingWord === word.term ? "animate-pulse" : ""} />
+                    </button>
+                  </td>
                   <td className="text-gray-600 italic">{word.pronunciation || "-"}</td>
                   <td className="text-center">
                     <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs">
-                      {word.partOfSpeech}
+                      {word.part_of_speech}
                     </span>
                   </td>
                   <td>{word.meaning}</td>
@@ -79,11 +120,19 @@ const VocabularyTable: React.FC<VocabularyTableProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {words.map((word, index) => (
-            <div key={index} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+          {words.map((word) => (
+            <div key={word.id} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start gap-2">
                 <div className="font-bold text-lg">{word.term}</div>
-                <div className="text-gray-500">({word.partOfSpeech})</div>
+                <button 
+                  onClick={() => handlePlayPronunciation(word.term)}
+                  className="text-primary-600 hover:text-primary-800 mt-1"
+                  disabled={playingWord === word.term}
+                  title="Phát âm"
+                >
+                  <Volume2 size={18} className={playingWord === word.term ? "animate-pulse" : ""} />
+                </button>
+                <div className="text-gray-500">({word.part_of_speech})</div>
                 {word.pronunciation && (
                   <div className="text-gray-600 italic">{word.pronunciation}</div>
                 )}
