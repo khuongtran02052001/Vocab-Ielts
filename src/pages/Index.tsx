@@ -5,6 +5,9 @@ import CategorySelector from '@/components/CategorySelector';
 import Header from '@/components/Header';
 import { fetchCategories, fetchWordsByCategory, searchWordsInSupabase, Category, Word } from '@/services/supabaseService';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -14,6 +17,7 @@ const Index = () => {
   const [displayMode, setDisplayMode] = useState<'table' | 'list'>('table');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [initializing, setInitializing] = useState<boolean>(false);
   
   useEffect(() => {
     const loadCategories = async () => {
@@ -91,16 +95,62 @@ const Index = () => {
     setDisplayMode(prev => prev === 'table' ? 'list' : 'table');
   };
 
+  const handleInitializeData = async () => {
+    try {
+      setInitializing(true);
+      const { data, error } = await supabase.functions.invoke('init-data');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      toast.success(data.message);
+      // Tải lại danh sách danh mục
+      const categories = await fetchCategories();
+      setCategories(categories);
+      
+      if (categories.length > 0 && !activeCategory) {
+        handleCategorySelect(categories[0].id);
+      }
+    } catch (error) {
+      console.error('Error initializing data:', error);
+      toast.error('Không thể khởi tạo dữ liệu mẫu');
+    } finally {
+      setInitializing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header onSearchChange={handleSearch} />
       
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <CategorySelector 
-          categories={categories}
-          activeCategory={activeCategory}
-          onSelectCategory={handleCategorySelect}
-        />
+        {categories.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8 text-center">
+            <h2 className="text-xl font-semibold mb-4">Chưa có danh mục nào</h2>
+            <p className="mb-4">Hệ thống chưa có danh mục từ vựng nào. Vui lòng khởi tạo danh mục mẫu hoặc tạo danh mục mới.</p>
+            <div className="flex justify-center gap-4">
+              <Button 
+                onClick={handleInitializeData} 
+                disabled={initializing}
+                className="bg-primary-600 hover:bg-primary-700"
+              >
+                {initializing ? 'Đang khởi tạo...' : 'Khởi tạo danh mục mẫu'}
+              </Button>
+              <Link to="/upload">
+                <Button variant="outline">
+                  Tải lên từ vựng
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <CategorySelector 
+            categories={categories}
+            activeCategory={activeCategory}
+            onSelectCategory={handleCategorySelect}
+          />
+        )}
         
         <div className="bg-white rounded-lg shadow-md p-6">
           {loading ? (

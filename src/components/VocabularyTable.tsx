@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Word } from '@/services/supabaseService';
 import { List, LayoutGrid, Volume2 } from 'lucide-react';

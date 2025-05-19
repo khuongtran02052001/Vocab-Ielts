@@ -77,16 +77,23 @@ const ExcelUpload: React.FC = () => {
 
   // Xử lý tải xuống file mẫu
   const handleDownloadTemplate = () => {
-    // URL của file mẫu
-    const templateUrl = '/template/vocabulary_template.xlsx';
-    
-    // Tạo link tải xuống
-    const link = document.createElement('a');
-    link.href = templateUrl;
-    link.download = 'vocabulary_template.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // URL của file mẫu
+      const templateUrl = '/template/vocabulary_template.xlsx';
+      
+      // Tạo link tải xuống
+      const link = document.createElement('a');
+      link.href = templateUrl;
+      link.download = 'vocabulary_template.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.info('Vui lòng kiểm tra file tải xuống và điền thông tin theo mẫu.');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Không thể tải xuống file mẫu');
+    }
   };
 
   return (
@@ -112,6 +119,37 @@ const ExcelUpload: React.FC = () => {
                 <li><strong>meaning</strong> - Ý nghĩa (bắt buộc)</li>
                 <li><strong>usage</strong> - Cách dùng (tùy chọn)</li>
               </ul>
+              
+              <div className="bg-white border p-3 rounded-md mb-4">
+                <p className="font-medium mb-1">Ví dụ về nội dung file Excel:</p>
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border p-2">term</th>
+                      <th className="border p-2">pronunciation</th>
+                      <th className="border p-2">part_of_speech</th>
+                      <th className="border p-2">meaning</th>
+                      <th className="border p-2">usage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border p-2">abandon</td>
+                      <td className="border p-2">əˈbændən</td>
+                      <td className="border p-2">verb</td>
+                      <td className="border p-2">từ bỏ, bỏ rơi</td>
+                      <td className="border p-2">She abandoned her car and continued on foot.</td>
+                    </tr>
+                    <tr>
+                      <td className="border p-2">ability</td>
+                      <td className="border p-2">əˈbɪləti</td>
+                      <td className="border p-2">noun</td>
+                      <td className="border p-2">khả năng, năng lực</td>
+                      <td className="border p-2">He has the ability to solve complex problems.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             
             <div className="mb-4 bg-yellow-50 p-3 border-l-4 border-yellow-400">
